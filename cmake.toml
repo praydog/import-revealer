@@ -1,0 +1,68 @@
+[project]
+name = "template-project"
+cmake-before="""
+add_compile_options($<$<CXX_COMPILER_ID:MSVC>:/MP>)
+"""
+cmake-after = """
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /MP")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP")
+
+if ("${CMAKE_BUILD_TYPE}" MATCHES "Release")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /MT")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MT")
+
+    # Statically compile runtime
+    string(REGEX REPLACE "/MD" "/MT" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+    string(REGEX REPLACE "/MD" "/MT" CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
+    string(REGEX REPLACE "/MD" "/MT" CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}")
+    string(REGEX REPLACE "/MD" "/MT" CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE}")
+
+    message(NOTICE "Building in Release mode")
+endif()
+
+set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+"""
+
+[fetch-content.spdlog]
+git = "https://github.com/gabime/spdlog"
+tag = "v1.13.0"
+
+[fetch-content.bddisasm]
+git = "https://github.com/bitdefender/bddisasm"
+tag = "v1.34.10"
+
+[fetch-content.kananlib]
+git = "https://github.com/cursey/kananlib"
+tag = "main"
+
+[fetch-content.json]
+git = "https://github.com/nlohmann/json"
+tag = "bc889afb4c5bf1c0d8ee29ef35eaaf4c8bef8a5d"
+
+[template.projecttemplate]
+type = "shared"
+sources = ["src/**.cpp", "src/**.c"]
+headers = ["src/**.hpp", "src/**.h"]
+include-directories = [
+    "src/", 
+]
+compile-options = ["/GS-", "/bigobj", "/EHa", "/MP"]
+compile-features = ["cxx_std_23"]
+compile-definitions = []
+link-libraries = [
+    "shlwapi",
+    "spdlog",
+    "kananlib",
+    "nlohmann_json",
+]
+[template.projecttemplate.properties]
+OUTPUT_NAME = "TEMPLATE"
+RUNTIME_OUTPUT_DIRECTORY_RELEASE = "${CMAKE_BINARY_DIR}/bin/${CMKR_TARGET}"
+RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO = "${CMAKE_BINARY_DIR}/bin/${CMKR_TARGET}"
+LIBRARY_OUTPUT_DIRECTORY_RELEASE = "${CMAKE_BINARY_DIR}/lib/${CMKR_TARGET}"
+LIBRARY_OUTPUT_DIRECTORY_RELWITHDEBINFO = "${CMAKE_BINARY_DIR}/lib/${CMKR_TARGET}"
+ARCHIVE_OUTPUT_DIRECTORY_RELEASE = "${CMAKE_BINARY_DIR}/lib/${CMKR_TARGET}"
+ARCHIVE_OUTPUT_DIRECTORY_RELWITHDEBINFO = "${CMAKE_BINARY_DIR}/lib/${CMKR_TARGET}"
+
+[target.vrproject]
+type="projecttemplate"
